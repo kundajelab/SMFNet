@@ -1,0 +1,145 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SMFNet"
+version = "0.0.0"
+description = "Official implementation of SMFNet, a discrete diffusion model of single-molecule footprinting reads"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Nathaniel Lee Diamant", email = "diamant@stanford.edu" },
+    { name = "Till Schwämmle", email = "till.schwaemmle@embl.de" },
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "h5py",
+    "pyfaidx",
+    "hydra-zen",
+    "tqdm",
+    "torch==2.5.1",
+    "pytorch-lightning==2.6.0",
+    "huggingface_hub",
+    "safetensors",
+]
+
+[project.optional-dependencies]
+plotting = [
+    "matplotlib",
+    "tangermeme",
+]
+training = [
+    "wandb==0.23.0",
+]
+notebook = [
+    "ipykernel>=6.29,<8",
+    "jupyterlab>=4,<5",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"smf_net.evaluation" = ["motifs/*.tsv"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# Frozen settings dataclasses are used as default arguments throughout.
+ignore = ["B008"]
+
+# ---------------------------------------------------------------------------
+# Pixi environment (recommended install path; see README).
+#
+# Packages with compiled code come from conda-forge/bioconda rather than PyPI.
+# Conda packages take precedence over the PyPI requirements above, and
+# conda-forge still builds for glibc 2.17, so the same lockfile also works on
+# clusters with old operating systems (e.g. Stanford's Sherlock).
+# ---------------------------------------------------------------------------
+
+[tool.pixi.workspace]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64", "osx-arm64"]
+
+[tool.pixi.system-requirements]
+# Restricts the solve to packages that run on glibc >= 2.17.
+libc = "2.17"
+
+[tool.pixi.pypi-options]
+# Fail at lock time instead of compiling a PyPI package from source. A package
+# that hits this should be moved to [tool.pixi.dependencies] below.
+no-build = true
+
+[tool.pixi.dependencies]
+python = "3.12.*"
+numpy = "*"
+pandas = "*"
+scipy = "*"
+h5py = "*"
+pyfaidx = "*"
+hydra-zen = "*"
+tqdm = "*"
+pytorch = "==2.5.1"
+pytorch-lightning = "==2.6.0"
+huggingface_hub = "*"
+safetensors = "*"
+
+[tool.pixi.pypi-dependencies]
+smfnet = { path = ".", editable = true }
+
+[tool.pixi.feature.gpu]
+platforms = ["linux-64"]
+system-requirements = { cuda = "12" }
+
+[tool.pixi.feature.gpu.dependencies]
+pytorch-gpu = "==2.5.1"
+# Triton builds a small C launcher for torch.compile, which needs the CUDA
+# headers and a C compiler newer than some systems provide.
+cuda-cudart-dev = "*"
+cuda-driver-dev = "*"
+c-compiler = "*"
+
+[tool.pixi.feature.cpu.dependencies]
+pytorch-cpu = "==2.5.1"
+
+[tool.pixi.feature.plotting.dependencies]
+matplotlib = "*"
+# tangermeme's compiled dependencies; tangermeme itself comes from PyPI.
+numba = "*"
+pybigtools = "*"
+scikit-learn = "*"
+
+[tool.pixi.feature.training.dependencies]
+wandb = "==0.23.0"
+
+[tool.pixi.feature.notebook.dependencies]
+ipykernel = ">=6.29,<8"
+jupyterlab = ">=4,<5"
+
+[tool.pixi.feature.dev.dependencies]
+pytest = "*"
+ruff = "*"
+
+# fmt only makes cosmetic changes (import order, formatting); lint and check
+# report other findings for review rather than fixing them.
+[tool.pixi.feature.dev.tasks]
+fmt = "ruff check --select I --fix . && ruff format ."
+lint = "ruff check ."
+check = "ruff format --check . && ruff check ."
+test = "pytest"
+
+# Command-line tools that data_preparation/ runs: samtools reads Fiber-seq
+# BAMs, and zstd compresses the per-molecule calls.
+[tool.pixi.feature.dataprep.dependencies]
+samtools = { version = "*", channel = "bioconda" }
+zstd = "*"
+
+[tool.pixi.environments]
+default = { features = ["gpu", "plotting", "training", "notebook", "dev", "dataprep"], solve-group = "gpu" }
+cpu = { features = ["cpu", "plotting", "training", "notebook", "dev", "dataprep"], solve-group = "cpu" }
