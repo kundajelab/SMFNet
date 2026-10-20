@@ -44,6 +44,8 @@ Use `# noqa: <rule>` only for a deliberate exception on one line.
 - Dependencies: add them to `[project]` and to `[tool.pixi]`. Packages with
   compiled code must come from conda-forge or bioconda (`[tool.pixi.dependencies]`
   or a feature), because PyPI source builds are disabled and the lock targets
-  glibc 2.17. Re-lock with `pixi lock` and commit `pixi.lock`.
+  glibc 2.17. The exception is a package whose PyPI wheels support glibc 2.17 when
+  conda-forge's builds do not (currently matplotlib). Re-lock with `pixi lock` and
+  commit `pixi.lock`.
 - Tests cover this package's behaviour, not that of its libraries. Keep them
   small.

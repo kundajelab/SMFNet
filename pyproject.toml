@@ -30,7 +30,8 @@ dependencies = [
 
 [project.optional-dependencies]
 plotting = [
-    "matplotlib",
+    # Taken from PyPI by pixi too; see [tool.pixi.feature.plotting.dependencies].
+    "matplotlib>=3.11",
     "tangermeme",
 ]
 training = [
@@ -109,7 +110,9 @@ c-compiler = "*"
 pytorch-cpu = "==2.5.1"
 
 [tool.pixi.feature.plotting.dependencies]
-matplotlib = "*"
+# matplotlib comes from PyPI (the plotting extra above): conda-forge's Linux builds
+# of 3.11 need glibc 2.28, but its PyPI wheels are built for glibc 2.17.
+#
 # tangermeme's compiled dependencies; tangermeme itself comes from PyPI.
 numba = "*"
 pybigtools = "*"
