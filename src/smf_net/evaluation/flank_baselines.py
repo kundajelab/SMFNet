@@ -1,6 +1,6 @@
 """Sequence-context train-set baseline for the profile correlations.
 
-How methylated a site is depends partly on its immediate sequence context,
+A site's mean call depends partly on its immediate sequence context,
 through the methyltransferase's flanking preference and any bias in calling.
 This baseline predicts each site's mean call from its flanking bases alone, so
 it is the reference a model has to beat to show it learned more than local

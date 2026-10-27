@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SMFNet"
-version = "0.0.0"
+version = "0.1.0"
 description = "Official implementation of SMFNet, a discrete diffusion model of single-molecule footprinting reads"
 readme = "README.md"
 license = "MIT"

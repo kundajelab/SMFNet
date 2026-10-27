@@ -4,8 +4,8 @@ import torch
 import torch.nn.functional as F
 from torch.distributions import Categorical
 
-# SMF calls are tokens 0..MASK_TOKEN - 1 (unmethylated, methylated) and the
-# masked state of the diffusion process is the last token.
+# SMF calls are tokens 0..MASK_TOKEN - 1 (0 methylated/accessible, 1 unmethylated/protected)
+# and the masked state of the diffusion process is the last token.
 MASK_TOKEN = 2
 
 

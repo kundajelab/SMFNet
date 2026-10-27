@@ -6407,8 +6407,8 @@ packages:
   timestamp: 1756274982526
 - pypi: ./
   name: smfnet
-  version: 0.0.0
-  sha256: c8d6ef08b903e63a09f692e347a8825c1280b924fa751a1d5a22cf8dd86f479b
+  version: 0.1.0
+  sha256: db0e263dd1be688194398054d0847d7d59972198b58b62ebada5204cb32b6e31
   requires_dist:
   - numpy
   - pandas
