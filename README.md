@@ -20,7 +20,7 @@ generated with observed reads, motif marginalization, in-silico mutagenesis of p
 profiles (ISM), and per-read in-silico mutagenesis (PRISM), which explains the model's
 likelihood of a single observed read.
 
-Preprint coming soon (see [Citation](#citation)).
+A preprint describing SMFNet in more detail is available at [biorxiv](https://www.biorxiv.org/content/10.64898/2026.10.30.762954v1) (see [Citation](#citation)).
 
 ## Installation
 
