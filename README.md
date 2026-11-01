@@ -223,7 +223,9 @@ pixi run check    # fail on unformatted code or lint findings
 
 ## Citation
 
-TODO: preprint citation.
+SMFNet was developed by Till Schwämmle and Nathaniel Diamant in the laboratories of Anshul Kundaje (Stanford University) and Arnaud Krebs (EMBL Heidelberg).
+
+If you use SMFNet in your work, please cite our [bioRxiv preprint (10.64898/2026.10.30.762954v1)](https://www.biorxiv.org/content/10.64898/2026.10.30.762954v1).
 
 ## License
 
