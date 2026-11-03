@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Extract GpC accessibility and a separate endogenous CpG methylation channel.
+# Extract GpC SMF signal and a separate endogenous CpG methylation channel.
 # Keep the shared script in the same directory; run with --help for options.
 
 script_argument <- grep("^--file=", commandArgs(FALSE), value = TRUE)[1]
