@@ -10,7 +10,7 @@ Processing can start from raw POD5, methyl-called BAM, or mBED files.
 | --- | --- | --- |
 | ONT POD5/FAST5 | `run_nf_smfont.sh raw` → called, aligned reads → indexed mBED | `extract_mbed.py` |
 | ONT BAM/CRAM with methylation calls | `run_nf_smfont.sh bam` → indexed mBED | `extract_mbed.py` |
-| Existing delta-string mBED | `index_mbed.sh` only if sorting/compression/indexing is needed | `extract_mbed.py` |
+| Existing mBED with per-read methylation strings | `index_mbed.sh` only if sorting/compression/indexing is needed | `extract_mbed.py` |
 
 
 ## Inputs
@@ -20,7 +20,7 @@ Processing can start from raw POD5, methyl-called BAM, or mBED files.
 | Regions | Three-column BED, 0-based half-open by default; chromosome names must match the reference |
 | ONT reads | Raw POD5/FAST5 plus a suitable custom methylation model, or BAM/CRAM already containing the required MM/ML calls |
 | ONT reference | Matching FASTA; `extract_mbed.py` requires its `.fai` index |
-| mBED | BGZF-compressed, tabix-indexed per-molecule delta strings from nf-smfont's custom mBED route |
+| mBED | BGZF-compressed, tabix-indexed per-molecule methylation strings from nf-smfont's custom mBED route |
 
 An ordinary alignment BAM without methylation calls is not sufficient for the `bam` route. The raw route requires the appropriate pore/basecalling and Remora models. The custom model used in the historical runs is not bundled here.
 
@@ -94,7 +94,7 @@ bash index_mbed.sh \
 This helper preserves extra columns, drops comment/blank lines, sorts by chromosome/start/end, and uses bgzip plus `tabix -p bed`. It refuses to overwriteexisting output and publishes files only after successful compression/indexing.
 The nf-smfont output is already indexed and does not need this extra step.
 
-mBED's first five fields must be chromosome, read start, read end, read ID and a delta string such as `5m3u2x`. Event positions follow the supplied parser: `read_start + 1 + cumulative_delta`, with `m=0`, `u=1`, `x=-1` in the H5.
+mBED's first five fields must be chromosome, read start, read end, read ID and a methylation string string such as `5m3u2x`. Event positions follow the supplied parser: `read_start + 1 + cumulative_delta`, with `m=0`, `u=1`, `x=-1` in the H5.
 This is not generic modkit bedMethyl. First-five-event strand inference, CGC/GCG collapsing, duplicate-read-ID overwrite behavior and read ordering follow the original extraction implementation. 
 
 ## H5 layout, coordinates and encoding
