@@ -1,0 +1,9 @@
+name: BAMutils
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+- python=3.10
+- picard=3.4.0
+- htslib=1.22.1
+- samtools=1.22.1

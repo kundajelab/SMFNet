@@ -1,0 +1,162 @@
+---
+title: EEEEEE - FFFFFF - CCCCCC
+params:
+  genome		: GGGGGG
+  expName 	: EEEEEE
+  filterTag	: FFFFFF
+  threads 	: ZZZZZZ
+  context		: CCCCCC
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
+    code_folding: hide
+editor_options:
+  chunk_output_type: inline
+---
+```{r Dependencies, include=FALSE, warning=FALSE}
+	# Dependencies and libraries
+	  .libPaths( c( './', .libPaths() ) )
+
+		dep.l <- c('this.path', 'parallel', 'BSgenome', params$genome, 'magrittr', 'ggplot2', 'RColorBrewer', 'readr', 'dplyr', 'plyr')
+		for (i in dep.l) {if(!suppressMessages(require(i, character.only = TRUE))) stop(paste0("Package not found: ", i))}
+		GENOME <- get(params$genome)
+		source('PPPPPP/smf_utils.R')
+
+	# Data loading
+		toLoad <- list.files(pattern=paste0(params$filterTag, '.bed.gz$'))
+		readLength <-  read_tsv(toLoad, show_col_types = F)
+		readLength$context <- params$context
+
+	# plot output
+		outPlot=paste('ReadStat', params$expName, params$filterTag, params$context, 'plots/', sep='_')
+		if(!dir.exists(outPlot)){dir.create(path=outPlot)}
+
+```
+
+#Mapped read length distribution
+```{r Distribution, warning=FALSE}
+	n50Val <- sum(readLength$read_length)*.5
+	N50data <- readLength %>%
+		select(readID, read_length) %>%
+		arrange(desc(read_length))
+	N50 <- 0
+	for (i in 1:nrow(N50data)) {
+		N50 <- N50 + N50data$read_length[i]
+		if(N50 > n50Val) {
+				N50 = N50data$read_length[i]
+				names(N50) <- N50data$readID[i]
+			break
+		}
+	}
+	rm(N50data, n50Val)
+	readLenghtMed <- median(readLength$read_length)
+	xLim <-  round_any(quantile(readLength$read_length, probs=.999, na.rm=T), 10000, f = ceiling)
+
+	p <- ggplot(data=readLength[readLength$context == unique(readLength$context)[1],], aes(x=read_length)) +
+	geom_vline(xintercept = c(N50,readLenghtMed), color = c("orchid3","grey"), linewidth=0.5) +
+	geom_histogram(aes(y=after_stat(count)), binwidth=500, lwd=0.5, colour="white", fill="lightblue") +
+	annotate("text", x = c(N50,readLenghtMed), y = Inf,
+		label = c(paste0("N50:\n", prettyNum(N50)),paste0("Median:\n", prettyNum(readLenghtMed))),
+		color = c("orchid3","grey"), vjust=1, hjust=-0.5, size=2) +
+	scale_x_continuous(limits = c(1, xLim)) +
+	theme_classic()
+	ggsave(filename=paste0(outPlot,'read_distribution_noFilter.pdf'), plot=p, width=8, height= 6)
+	p
+```
+
+#Get coverage over genome tiles
+```{r Coverage, warning=FALSE}
+	tiles <- keepStandardChromosomes(GRanges(seqinfo(GENOME)), pruning.mode ='coarse')
+
+	GrReads <- GRanges(readLength)[,0]
+	GrReads <- GrReads[seqnames(GrReads) %in% seqnames(tiles)]
+	seqlevels(GrReads) <- seqlevels(tiles)
+	seqinfo(GrReads) <- seqinfo(tiles)
+	GrReads <- sort(trim(GrReads))
+
+	chunks <- seq(1, 50000, 500)
+	chunks <- c(50, chunks[-1]-1, 50000)
+	chunks_tiles <- mclapply(chunks, function(i){
+		return(tileGenome(seqlengths(GENOME)[as.character(seqnames(tiles))], tilewidth=i, cut.last.tile.in.chrom=TRUE))
+	}, mc.cores = params$threads)
+	names(chunks_tiles) <- paste0('tile_', chunks)
+
+	data <- do.call(bind_rows, mclapply(chunks, function(i){
+		counts <- countOverlaps(chunks_tiles[[paste0('tile_', i)]], GrReads, ignore.strand=TRUE, minoverlap =  i)
+		return(tibble(chunk=i, Medians=median(counts, na.rm = TRUE)))
+	}, mc.cores = params$threads))
+
+	p <- ggplot(data, aes(x=chunk, y=Medians)) +
+		geom_col(color='white', fill='lightblue') +
+		labs(title="Medians of mapped read coverage over the genome tile length", y = "Read count", x='tile length') +
+		scale_x_continuous(breaks = c(1, seq(5000, 50000, 5000))) +
+		theme_classic()
+
+	if(params$genome == 'BSgenome.Dmelanogaster.UCSC.dm6'){
+		p <- p + geom_vline(xintercept = c(3820, 7350, 9740), color=c('maroon3', 'green3', 'red3')) +
+		annotate("text", x=c(3820,7350,9740), y=Inf, label = c('E-E','E-P','P-P'), angle=90, size=4, color=c('maroon3', 'green3', 'red3'), vjust=-1, hjust=1)
+	}
+	ggsave(filename=paste0(outPlot,'Coverage_over_genome_tiles.pdf'), plot=p, width=8, height= 6)
+	p
+```
+
+```{r Coverage Violin, warning=FALSE}
+	data <- do.call(bind_rows, mclapply(c(50, 1000, 5000, 10000, 15000, 20000, 25000, 30000), function(i){
+	  counts <- countOverlaps(chunks_tiles[[paste0('tile_', i)]], GrReads, ignore.strand=TRUE, minoverlap =  i)
+	  return(tibble(chunk=as.factor(rep(i, length(counts))), read_count=counts))
+	}, mc.cores = params$threads))
+
+	data$chunk <- gsub('^500$', '0.5kb', data$chunk) %>% gsub('500$', '.5kb', .) %>%
+		gsub('000$', 'kb', .) %>%  gsub('^1$', '1bp', .) %>%
+		factor(., levels=unique(.))
+
+	p <- ggplot(data, aes(x=chunk, y=read_count, fill=chunk)) +
+		geom_violin(trim=TRUE, bw=1, show.legend=F) +
+		geom_boxplot(width=0.1, fill="white", outlier.shape = NA) +
+		labs(title='Mapped read coverage over long distance bin', x="tile length", y = "Read count") +
+		scale_fill_brewer(palette="RdBu") +
+		theme_bw()
+	ggsave(filename=paste0(outPlot,'Coverage_over_genome_tiles_violin.pdf'), plot=p, width=8 , height=6)
+	p
+```
+
+# Methylation distribution per read
+```{r Single Molecule, warning=FALSE}
+	p1 <- ggplot(readLength, aes(x=context, y=read_methylation_rate, fill=context)) +
+	  geom_violin(trim=FALSE, bw=0.01, show.legend=F) + #geom_split_violin
+		geom_boxplot(width=0.1, fill="white", outlier.shape = NA) +
+		labs(title='Distribution of methylation per read', x="context", y = "Methylation rate") +
+		scale_fill_brewer(palette="RdBu") +
+		facet_wrap(~context) +
+		theme_bw()
+	ggsave(filename=paste0(outPlot,'perRead_meth_distribution.pdf'), plot=p1, width=8 , height=6)
+	p1
+
+	p2 <- ggplot(readLength, aes(x=context, y=called_Cs, fill=context)) +
+	  geom_violin(trim=TRUE, show.legend=F) +
+		geom_boxplot(width=0.1, fill="white", outlier.shape = NA) +
+		labs(title='Distribution of aggregate Cs per read', x="context", y = "Cytosine count") +
+		scale_fill_brewer(palette="RdBu") +
+		theme_bw()
+	ggsave(filename=paste0(outPlot,'perRead_meth_cytosinecount.pdf'), plot=p2, width=8 , height=6)
+	p2
+
+	p3 <- ggplot(readLength[readLength$context == unique(readLength$context)[1],], aes(x=read_length, y=called_Cs)) +
+	  geom_hex(bins = 75) +
+	  geom_smooth(method=lm, formula='y ~ x', se=FALSE, fullrange=TRUE) +
+	  scale_fill_continuous(type = "viridis") +
+		labs(title='aggregate Cs in function of read length', x="read length", y = "Cytosine count") +
+		theme_bw()
+	ggsave(filename=paste0(outPlot,'perRead_meth_cytosinecount_readlength.pdf'), plot=p3, width=8, height=6)
+	p3
+
+	p4 <- ggplot(readLength, aes(x=read_length, y=read_methylation_rate)) +
+	  geom_hex(bins = 75) +
+	  scale_fill_continuous(type = "viridis") +
+		labs(title='Read methyaltion rate in function of read length', x="read length", y = "read methylation rate") +
+		facet_wrap(~context) +
+		theme_bw()
+	ggsave(filename=paste0(outPlot,'perRead_meth_rate_readlength.pdf'), plot=p4, width=8 , height=6)
+	p4
+```

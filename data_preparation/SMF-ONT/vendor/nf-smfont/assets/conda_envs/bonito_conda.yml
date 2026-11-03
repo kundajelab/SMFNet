@@ -1,0 +1,14 @@
+name: bonito
+channels:
+  - conda-forge
+  - bioconda
+  - "nvidia/label/cuda-11.8.0"
+dependencies:
+- python==3.12
+- samtools==1.23
+- htslib==1.23
+- gcc
+- cuda-toolkit
+- pip
+- pip:
+  - ont-bonito==0.8.1

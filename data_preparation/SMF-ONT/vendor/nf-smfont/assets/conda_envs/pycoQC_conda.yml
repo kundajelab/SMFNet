@@ -1,0 +1,10 @@
+name: pycoqc
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+- pip
+- pip:
+  - setuptools
+  - wheel
+  - git+https://github.com/a-slide/pycoQC.git@v2.5.0.21

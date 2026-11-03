@@ -1,0 +1,53 @@
+To: $email
+Subject: $subject
+Mime-Version: 1.0
+Content-Type: multipart/related;boundary="smfontmimeboundary"
+
+--smfontmimeboundary
+Content-Type: text/html; charset=utf-8
+
+$email_html
+
+--smfontmimeboundary
+Content-Type: image/png;name="nf-smfont_logo.png"
+Content-Transfer-Encoding: base64
+Content-ID: <smfontpipelinelogo>
+Content-Disposition: inline; filename="nf-smfont_logo.png"
+
+<% out << new File("$projectDir/assets/nf-smfont_logo.png").
+    bytes.
+    encodeBase64().
+    toString().
+    tokenize( '\n' )*.
+    toList()*.
+    collate( 76 )*.
+    collect { it.join() }.
+    flatten().
+    join( '\n' ) %>
+
+<%
+if (mqcFile){
+def mqcFileObj = new File("$mqcFile")
+if (mqcFileObj.length() < mqcMaxSize){
+out << """
+--smfontmimeboundary
+Content-Type: text/html; name=\"multiqc_report\"
+Content-Transfer-Encoding: base64
+Content-ID: <mqcreport>
+Content-Disposition: attachment; filename=\"${mqcFileObj.getName()}\"
+
+${mqcFileObj.
+    bytes.
+    encodeBase64().
+    toString().
+    tokenize( '\n' )*.
+    toList()*.
+    collate( 76 )*.
+    collect { it.join() }.
+    flatten().
+    join( '\n' )}
+"""
+}}
+%>
+
+--smfontmimeboundary--

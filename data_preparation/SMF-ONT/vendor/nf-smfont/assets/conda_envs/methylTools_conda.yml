@@ -1,0 +1,18 @@
+name: methylTools
+channels:
+  - conda-forge
+  - bioconda
+  - epi2melabs
+dependencies:
+- python=3.10
+- tqdm=4.67.1
+- numpy=2.2.6
+- pandas=2.3.3
+- htslib=1.22.1
+- samtools=1.22.1
+- tabix=1.11
+- pyfaidx=0.9.0.3
+- pip
+- pip:
+  - modbampy==0.10.0
+  - pytabix==0.1

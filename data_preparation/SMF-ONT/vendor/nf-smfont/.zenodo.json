@@ -1,0 +1,33 @@
+{
+    "upload_type": "software",
+    "license": "mit",
+    "related_identifiers": [
+        {
+            "scheme": "url",
+            "identifier": "https://git.embl.org/grp-krebs/nf-smfont.git",
+            "relation": "isDerivedFrom",
+            "resource_type": "software"
+        },
+        {
+            "scheme": "url",
+            "identifier": "https://git.embl.org/grp-krebs/nf-smfont/blob/main/README.md",
+            "relation": "isDocumentedBy",
+            "resource_type": "publication-softwaredocumentation"
+        }
+    ],
+    "publication_date": "2026-07-14",
+    "title": "nf-SMFONT",
+    "version": "0.9.0",
+    "description": "nf-smfont is a comprehensive Nextflow pipeline for Single Molecule Footprinting (SMF) analysis using Oxford Nanopore Technologies (ONT) data. The pipeline processes raw ONT sequencing data (pod5/fast5 files) or pre-processed BAM/CRAM files to identify transcription factor binding sites, chromatin accessibility, and co-occupancy patterns at single-molecule resolution.",
+    "creators": [
+        {
+            "name": "Mathias Boulanger",
+            "affiliation": "EMBL"
+        },
+        {
+            "name": "Michela Palamin",
+            "affiliation": "EMBL"
+        }
+    ],
+    "access_right": "open"
+}

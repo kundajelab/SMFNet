@@ -1,0 +1,40 @@
+╭═══════════════════════════════════════╮
+║  ┌─┐┌─┐      ┌─┐┌┬┐┌─┐┌─┐┌┐┌┌┬┐       ║
+║  │││├┤  ───  └─┐││││├┤ │ ││││ │       ║
+║  ┘└┘└   ───  └─┘┴ ┴└  └─┘┘└┘ ┴        ║
+║                                       ║
+║    Single Molecule Footprinting       ║
+║    with Oxford Nanopore reads         ║
+╰═══════════════════════════════════════╯
+nf-smfont ${version}
+Run Name: $runName
+
+<% if (success){
+    out << "## nf-smfont execution completed successfully! ##"
+} else {
+    out << """####################################################
+## nf-smfont execution completed unsuccessfully! ##
+####################################################
+The exit status of the task that caused the workflow execution to fail was: $exitStatus.
+The full error message was:
+
+${errorReport}
+"""
+} %>
+
+
+The workflow was completed at $dateComplete (duration: $duration)
+
+The command used to launch the workflow was as follows:
+
+  $commandLine
+
+
+
+Pipeline Configuration:
+-----------------------
+<% out << summary.collect{ k,v -> " - $k: $v" }.join("\n") %>
+
+--
+nf-smfont - Nextflow pipeline for Single Molecule Footprinting analysis with Oxford Nanopore Technologies datasets
+https://git.embl.org/grp-krebs/nf-smfont

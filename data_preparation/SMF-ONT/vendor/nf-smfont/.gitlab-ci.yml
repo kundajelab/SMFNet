@@ -1,0 +1,12 @@
+stages:
+ - deploy
+
+deploy_zenodo:
+  stage: deploy
+  image: registry.gitlab.com/escape-ossr/eossr:v2.0.0
+  before_script:
+    - eossr-check-connection-zenodo --token $ZENODO_TOKEN -p $CI_PROJECT_DIR
+  script:
+    - eossr-upload-repository --add-escape2020 -t $ZENODO_TOKEN -i $CI_PROJECT_DIR --archive-name $CI_PROJECT_NAME.zip -id $RECORD_ID
+  only:
+    - tags

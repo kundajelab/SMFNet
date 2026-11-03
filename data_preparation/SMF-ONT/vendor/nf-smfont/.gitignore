@@ -1,0 +1,11 @@
+.nextflow*
+work/
+data/
+results/
+.DS_Store
+testing/
+testing*
+*.pyc
+.vscode/settings.json
+NEXTFLOW_25_26_MIGRATION_PLAN.md
+.github

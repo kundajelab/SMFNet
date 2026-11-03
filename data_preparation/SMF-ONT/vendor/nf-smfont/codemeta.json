@@ -1,0 +1,56 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "license": "https://spdx.org/licenses/MIT",
+    "codeRepository": "https://git.embl.org/grp-krebs/nf-smfont.git",
+    "dateCreated": "2023-07-11",
+    "datePublished": "2026-07-14",
+    "name": "nf-SMFONT",
+    "version": "0.9.0",
+    "description": "nf-smfont is a comprehensive Nextflow pipeline for Single Molecule Footprinting (SMF) analysis using Oxford Nanopore Technologies (ONT) data. The pipeline processes raw ONT sequencing data (pod5/fast5 files) or pre-processed BAM/CRAM files to identify transcription factor binding sites, chromatin accessibility, and co-occupancy patterns at single-molecule resolution.",
+    "referencePublication": "https://doi.org/10.1101/2025.08.05.668660",
+    "readme": "https://git.embl.org/grp-krebs/nf-smfont/blob/main/README.md",
+    "softwareVersion": "0.9.0",
+    "programmingLanguage": [
+        "Python 3",
+        "R",
+        "Nextflow"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0002-2799-4047",
+            "givenName": "Mathias",
+            "familyName": "Boulanger",
+            "email": "mathias.boulanger@embl.de",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "EMBL"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0001-6228-7332",
+            "givenName": "Michela",
+            "familyName": "Palamin",
+            "email": "michela.palamin@embl.de",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "EMBL"
+            }
+        }
+    ],
+    "maintainer": [
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0002-2799-4047",
+            "givenName": "Mathias",
+            "familyName": "Boulanger",
+            "email": "mathias.boulanger@embl.de",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "EMBL"
+            }
+        }
+    ]
+}

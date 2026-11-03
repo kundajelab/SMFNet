@@ -1,0 +1,5 @@
+sample,dir,ext
+S1,/path/to/pod5/files1/:/path/to/pod5/files2/,pod5
+S2,/path/to/fast5/files/,fast5
+S3,/path/to/bam/files/,bam
+S4,/path/to/cram/files/,cram

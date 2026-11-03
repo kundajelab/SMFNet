@@ -1,0 +1,32 @@
+name: SMFenv
+channels:
+  - conda-forge
+  - bioconda
+  - r
+dependencies:
+- python=3.10
+- r-base=4.4.3
+- r-essentials
+- r-biocmanager
+- bioconductor-biocversion
+- bioconductor-bsgenome
+- bioconductor-genomicranges
+- bioconductor-genomicfeatures
+- bioconductor-rsamtools
+- r-optparse
+- r-this.path
+- r-qs
+- r-rmarkdown
+- r-plyr
+- r-magrittr
+- r-tidyverse
+- r-data.table
+- r-hexbin
+- r-kernsmooth
+- r-matrix
+- r-psych
+- r-catools
+- r-ggpubr
+- r-ggridges
+- r-gtools
+- r-patchwork
