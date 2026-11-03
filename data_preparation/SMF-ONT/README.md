@@ -35,7 +35,7 @@ Run inside an appropriate allocation, or supply your site's executor/resourceset
 ### From already-called BAMs
 
 ```bash
-bash data_extraction/run_nf_smfont.sh bam \
+bash run_nf_smfont.sh bam \
   --input_folder input/ont_bams --sample_name SAMPLE \
   --ref input/reference.fa --outdir output/ont
 ```
@@ -45,7 +45,7 @@ The directory should contain that sample's BAMs directly. For CRAM input add `--
 ### From raw signal
 
 ```bash
-bash data_extraction/run_nf_smfont.sh raw \
+bash run_nf_smfont.sh raw \
   --input_folder input/pod5 --sample_name SAMPLE \
   --ref input/reference.fa --outdir output/ont \
   --remora_model_path input/models/custom_CG_GC_model.pt
@@ -78,7 +78,7 @@ SAMPLE_methcalls_llr_2.0_mot_CG-GC_methFiltered_min_0.05_max_0.95.bed.gz
 ```bash
 samtools faidx input/reference.fa
 
-python data_extraction/extract_mbed.py \
+python extract_mbed.py \
   --bed input/regions.bed --fasta input/reference.fa \
   --mbed output/ont/mBED/SAMPLE_methcalls_llr_2.0_mot_CG-GC_methFiltered_min_0.05_max_0.95.bed.gz \
   --out output/ont/SAMPLE_reads.h5 --workers 4
@@ -87,7 +87,7 @@ python data_extraction/extract_mbed.py \
 For an existing unsorted/unindexed mBED, prepare a separate indexed copy first:
 
 ```bash
-bash data_extraction/index_mbed.sh \
+bash index_mbed.sh \
   input/calls.mbed.gz output/ont/calls.mbed.gz 4
 ```
 
