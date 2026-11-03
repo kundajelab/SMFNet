@@ -1,4 +1,4 @@
-# Illumina extraction
+# Short-read SMF data extraction
 
 Replace the example paths, sample name and reference genome with your own inputs. This data extraction relies on [QuasR](https://bioconductor.org/packages/release/bioc/html/QuasR.html) for sequence alignment and the [SingleMoleculeFootprinting](https://bioconductor.org/packages/release/bioc/html/SingleMoleculeFootprinting.html) bioconductor package for data extraction. Preprocessing follows the [SingleMoleculeFootprinting workflow](https://github.com/Krebslabrep/SingleMoleculeFootprinting).
 
