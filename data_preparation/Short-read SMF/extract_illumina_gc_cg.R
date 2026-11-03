@@ -17,7 +17,7 @@ parse_options <- function(gc_only = FALSE) {
       "  --bed-coordinates bed|one-based (default bed)\n",
       "  --coverage N (default 1 in both modes) --min-sites 15\n",
       "  --gc-context CONTEXT (default GC+CG: GC; GC-only: DGCHN)\n",
-      "  --cg-context CONTEXT (default GC+CG: CG; GC-only: NWCGW)\n",
+      "  --cg-context CONTEXT (default GC+CG: CG; GC-only: HCGD)\n",
       "  --bulk-mode reads|qmeth (default reads)\n",
       "  --compression 1 --overwrite false --paired fr --bisulfite undir\n",
       "  --alignment-parameter '-e 70 -X 1000 -k 2 --best -strata'\n",
@@ -41,7 +41,7 @@ parse_options <- function(gc_only = FALSE) {
     `batch-size` = "32", `bed-coordinates` = "bed",
     coverage = "1", `min-sites` = "15",
     `gc-context` = if (gc_only) "DGCHN" else "GC",
-    `cg-context` = if (gc_only) "NWCGW" else "CG",
+    `cg-context` = if (gc_only) "HCGD" else "CG",
     `bulk-mode` = "reads", compression = "1",
     overwrite = "false", paired = "fr", bisulfite = "undir",
     `alignment-parameter` = "-e 70 -X 1000 -k 2 --best -strata"
