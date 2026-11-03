@@ -108,7 +108,7 @@ This is not generic modkit bedMethyl. First-five-event strand inference, CGC/GCG
 Matrices have reads on the first axis when opened with Python/h5py. H5 compression defaults to gzip level 1 and is
 configurable with `--compression`.
 
-Default BED input is **0-based, half-open**. H5 names are **1-based, closed**: `chr1 100 110` becomes `chr1:101-110`. A call at 1-based coordinate 103 is stored at offset 2. T
+Default BED input is **0-based, half-open**. H5 names are **1-based, closed**: `chr1 100 110` becomes `chr1:101-110`. A call at 1-based coordinate 103 is stored at offset 2.
 
 The extractors defaults to `-1` missing, `0` methylated and `1` unmethylated. 
 
