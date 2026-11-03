@@ -98,3 +98,20 @@ A call at 1-based position 103 has relative position 2. Use `--bed-coordinates o
 
 Only the parent process writes H5/ workers extract bounded batches of regions. Use `--workers 1` on non-Unix systems. Output is written to a temporary sibling file and renamed on success. Existing output requires `--overwrite true`.
 
+
+### R 4.4.1
+
+The following package versions were used for validation:
+
+| Package | Version |
+| --- | --- |
+| SingleMoleculeFootprinting | 2.2.0 |
+| QuasR | 1.46.0 |
+| Rbowtie | 1.46.0 |
+| Matrix | 1.7.0 |
+| GenomicRanges | 1.56.1 |
+| Biostrings | 2.72.1 |
+| rhdf5 | 2.48.0 |
+| BSgenome | 1.72.0 |
+| BSgenome.Mmusculus.UCSC.mm10 | 1.4.3 |
+
