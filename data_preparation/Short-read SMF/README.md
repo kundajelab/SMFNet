@@ -70,9 +70,9 @@ These are alternative outputs, not sequential processing stages. Extract one sam
 | Default | GC+CG | GC-only |
 | --- | --- | --- |
 | Coverage threshold | 1 | 1 |
-| Minimum accessibility sites (`--min-sites`) | 15 across GC + CG | 15 GC |
-| GC context | `DGCHN` | `DGCHN` |
-| CG context | `NWCGW` | `NWCGW` |
+| Minimum SMF sites (`--min-sites`) | 15 across GC + CG | 15 GC |
+| GC context | `GC` | `DGCHN` |
+| CG context | `CG` | `HCGD` |
 | Bulk coverage calculation | From the extracted reads | From the extracted reads |
 
 Contexts, coverage and minimum sites are configurable. Empty or insufficient-coverage channels are skipped.
