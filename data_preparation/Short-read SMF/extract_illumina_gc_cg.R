@@ -15,18 +15,17 @@ parse_options <- function(gc_only = FALSE) {
       "  --genome BSgenome.Mmusculus.UCSC.mm10\n",
       "  --alignments-dir DIR --cache-dir DIR --workers 4 --batch-size 32\n",
       "  --bed-coordinates bed|one-based (default bed)\n",
-      "  --coverage N (default GC+CG: 1; GC-only: 50) --min-sites 15\n",
-      "  --gc-context CONTEXT (default GC+CG: DGCHN; GC-only: GC)\n",
-      "  --cg-context NWCGW --bulk-mode reads|qmeth (default reads)\n",
-      "  --encoding standard|legacy-gc-cg|legacy-gc (default standard)\n",
+      "  --coverage N (default 1 in both modes) --min-sites 15\n",
+      "  --gc-context CONTEXT (default GC+CG: GC; GC-only: DGCHN)\n",
+      "  --cg-context CONTEXT (default GC+CG: CG; GC-only: NWCGW)\n",
+      "  --bulk-mode reads|qmeth (default reads)\n",
       "  --compression 1 --overwrite false --paired fr --bisulfite undir\n",
       "  --alignment-parameter '-e 70 -X 1000 -k 2 --best -strata'\n",
       "  --lib-paths DIR1:DIR2 (optional extra R library directories)\n\n",
       "BED is 0-based half-open by default. Region keys are 1-based closed;\n",
       "smf_pos/methyl_pos are 0-based offsets from the first region base.\n",
       "Standard encoding: QuasR 0 -> -1 missing; 1 -> 1 unmethylated;\n",
-      "2 -> 0 methylated. Legacy options select alternate call encodings,\n",
-      "including alternate missing-call behavior.\n",
+      "2 -> 0 methylated. This encoding is fixed for both assay modes.\n",
       "Combined mode: GC and CG calls share smf_mat/smf_pos/read_id.\n",
       "GC-only mode: GC calls use smf_*; endogenous CG calls use methyl_*.\n",
       "--min-sites applies to the complete accessibility channel.\n",
@@ -40,9 +39,10 @@ parse_options <- function(gc_only = FALSE) {
   options <- list(
     genome = "BSgenome.Mmusculus.UCSC.mm10", workers = "4",
     `batch-size` = "32", `bed-coordinates` = "bed",
-    coverage = if (gc_only) "50" else "1", `min-sites` = "15",
-    `gc-context` = if (gc_only) "GC" else "DGCHN", `cg-context` = "NWCGW",
-    `bulk-mode` = "reads", encoding = "standard", compression = "1",
+    coverage = "1", `min-sites` = "15",
+    `gc-context` = if (gc_only) "DGCHN" else "GC",
+    `cg-context` = if (gc_only) "NWCGW" else "CG",
+    `bulk-mode` = "reads", compression = "1",
     overwrite = "false", paired = "fr", bisulfite = "undir",
     `alignment-parameter` = "-e 70 -X 1000 -k 2 --best -strata"
   )
@@ -63,7 +63,6 @@ parse_options <- function(gc_only = FALSE) {
   choices <- list(
     `bed-coordinates` = c("bed", "one-based"),
     `bulk-mode` = c("qmeth", "reads"),
-    encoding = c("standard", "legacy-gc-cg", "legacy-gc"),
     overwrite = c("true", "false")
   )
   for (key in names(choices)) if (!options[[key]] %in% choices[[key]]) stop("Invalid --", key)
@@ -107,24 +106,17 @@ filter_context <- function(methylation_ranges, genome, context) {
   matching_ranges
 }
 
-# Convert per-site calls to the requested signed integer representation.
-format_calls <- function(calls, encoding) {
+# Convert QuasR calls to the fixed signed integer representation.
+format_calls <- function(calls) {
   # Materialize only the current region; output is stored as signed 8-bit values.
   calls <- as.matrix(calls)
-  if (encoding == "standard") {
-    if (any(!is.na(calls) & !calls %in% 0:2)) stop("Unexpected QuasR call values outside 0/1/2")
-    # Missing calls remain -1; methylated calls are encoded as 0.
-    encoded_calls <- matrix(-1L, nrow(calls), ncol(calls))
-    encoded_calls[which(calls == 1)] <- 1L
-    encoded_calls[which(calls == 2)] <- 0L
-  } else if (encoding == "legacy-gc-cg") {
-    encoded_calls <- matrix(-1L, nrow(calls), ncol(calls))
-    encoded_calls[which(calls == 2)] <- 0L
-  } else {
-    encoded_calls <- matrix(0L, nrow(calls), ncol(calls))
-    encoded_calls[which(calls == 1)] <- 1L
-    encoded_calls[which(calls == 2)] <- -1L
+  if (any(!is.na(calls) & !calls %in% 0:2)) {
+    stop("Unexpected QuasR call values outside 0/1/2")
   }
+  # Both zero and NA represent missing input; neither becomes an observed state.
+  encoded_calls <- matrix(-1L, nrow(calls), ncol(calls))
+  encoded_calls[which(calls == 1)] <- 1L
+  encoded_calls[which(calls == 2)] <- 0L
   # Transpose for the HDF5 dimension convention so Python sees reads x positions.
   t(encoded_calls)
 }
@@ -156,10 +148,14 @@ merge_accessibility_calls <- function(gc_calls, cg_calls) {
     incoming <- calls[observed]
     existing <- merged[destination]
     # Overlapping contexts may identify the same site; do not duplicate it.
-    if (any(existing != 0 & existing != incoming)) {
-      stop("Conflicting GC/CG calls for the same molecule and collapsed position")
-    }
+    conflicts <- existing != 0 & existing != incoming
+    # Two opposite-strand calls can collapse onto one overlapping-context site.
+    # Keep that site, but treat disagreement within a molecule as missing.
+    incoming[conflicts] <- 0L
     merged[destination] <- incoming
+    if (any(conflicts)) {
+      message(sum(conflicts), " conflicting collapsed GC/CG calls marked missing")
+    }
   }
   merged
 }
@@ -227,7 +223,6 @@ run_extraction <- function(gc_only = FALSE) {
   if (!length(sample_indices)) stop("Sample not found: ", options$sample)
   project <- project[sample_indices]
   project@aligner <- "Rbowtie"
-  if (options$encoding != "standard") warning("Using legacy conversion: missing-call encoding differs from standard")
 
   # Extract each region independently; workers return matrices to the parent.
   extract <- function(region) {
@@ -280,7 +275,8 @@ run_extraction <- function(gc_only = FALSE) {
   rhdf5::h5writeAttribute("reads_by_positions", handle, "matrix_order")
   rhdf5::h5writeAttribute("one_based_closed", handle, "region_coordinates")
   rhdf5::h5writeAttribute("first_base_zero", handle, "position_origin")
-  rhdf5::h5writeAttribute(options$encoding, handle, "encoding")
+  rhdf5::h5writeAttribute("standard", handle, "encoding")
+  rhdf5::h5writeAttribute("missing", handle, "combined_conflict_policy")
   rhdf5::h5writeAttribute(options$sample, handle, "sample")
   rhdf5::h5writeAttribute(if (gc_only) "gc_only" else "gc_cg", handle, "assay_mode")
   rhdf5::h5writeAttribute(if (gc_only) "GC" else "GC+CG", handle, "accessibility_contexts")
@@ -298,7 +294,7 @@ run_extraction <- function(gc_only = FALSE) {
     relative_positions <- as.integer(as.numeric(colnames(call_matrix)) - start(region))
     if (anyDuplicated(relative_positions)) stop("Duplicate collapsed positions: ", name)
     rhdf5::h5write(relative_positions, temporary, paste0(stem, "_pos/", name))
-    values <- format_calls(call_matrix, options$encoding)
+    values <- format_calls(call_matrix)
     path <- paste0(stem, "_mat/", name)
     rhdf5::h5createDataset(temporary, path,
       dims = dim(values),
