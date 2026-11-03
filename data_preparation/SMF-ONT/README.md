@@ -1,4 +1,4 @@
-# SMF data extraction
+# SMF-ONT data extraction
 
 Prepares the `smf_mat`/`smf_pos` H5 files used by SMFNet from ONT per-molecule methylation calls. The file is created from mBED files following data processing with the [nf-smfont pipeline](https://git.embl.org/grp-krebs/nf-smfont/) (see [Boulanger et al. Molecular Cell 2026](https://www.cell.com/molecular-cell/fulltext/S1097-2765(26)00506-X)). 
 
