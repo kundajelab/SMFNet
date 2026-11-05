@@ -6408,7 +6408,7 @@ packages:
 - pypi: ./
   name: smfnet
   version: 0.1.0
-  sha256: db0e263dd1be688194398054d0847d7d59972198b58b62ebada5204cb32b6e31
+  sha256: dc0fcd37002c07eff2f75697e71d4a5316d329b878db3b620eb6030d6d9e29be
   requires_dist:
   - numpy
   - pandas

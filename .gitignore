@@ -217,7 +217,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# SMFNet runs: Hydra run directories and training logs
+# SMFNet runs: downloaded data (README), Hydra run directories and training logs
+/data/
 outputs/
 multirun/
 wandb/

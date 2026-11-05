@@ -42,9 +42,15 @@ def seed_before_instantiation(seed: int) -> None:
 
 
 def build_checkpoint() -> ModelCheckpoint:
-    """Save checkpoints alongside Hydra's run configuration."""
+    """Save checkpoints alongside Hydra's run configuration.
+
+    File names have no "=" (Lightning's default ``epoch=3-step=40.ckpt``), so they
+    can be passed to the other scripts' ``checkpoint=`` without quoting.
+    """
     checkpoint_callback = ModelCheckpoint(
         dirpath=HydraConfig.get().runtime.output_dir,
+        filename="epoch{epoch}-step{step}",
+        auto_insert_metric_name=False,
         monitor="val/loss",
         save_top_k=1,
         mode="min",
@@ -205,7 +211,8 @@ def main(
         callback_list.append(
             ModelCheckpoint(
                 dirpath=f"{output_dir}/periodic",
-                filename="{epoch}",
+                filename="epoch{epoch}",
+                auto_insert_metric_name=False,
                 save_top_k=-1,
                 every_n_epochs=checkpoint_every_n_epochs,
                 save_on_train_epoch_end=False,
@@ -225,7 +232,8 @@ def main(
         callback_list.append(
             ModelCheckpoint(
                 dirpath=output_dir,
-                filename="best-sample-{epoch}",
+                filename="best-sample-epoch{epoch}",
+                auto_insert_metric_name=False,
                 monitor="sample/profile_pearson",
                 mode="max",
                 save_top_k=1,

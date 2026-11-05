@@ -95,10 +95,15 @@ These models are on the [Hugging Face Hub](https://huggingface.co/collections/ku
 | [`kundajelab/smfnet-ont-mesc`](https://huggingface.co/kundajelab/smfnet-ont-mesc) | Nanopore SMF (CpG and GpC), mouse ES cells | mm10 |
 | [`kundajelab/smfnet-fiberseq-gm12878`](https://huggingface.co/kundajelab/smfnet-fiberseq-gm12878) | Fiber-seq (m6A), GM12878 | hg38 |
 
+The ONT mESC model's training data is a Hub dataset,
+[`kundajelab/smfnet-data-ont-mesc`](https://huggingface.co/datasets/kundajelab/smfnet-data-ont-mesc)
+(see [Train a model](#train-a-model)).
+
 Every model in the paper (including the GpC cell-type models and the read-depth series), the
 processed training data, and the results behind the figures are on Zenodo:
 [10.5281/zenodo.23407172](https://doi.org/10.5281/zenodo.23407172). The code that makes the
-paper's figures from them is released there as well.
+paper's figures from them is in
+[kundajelab/SMFNet_paper_analysis_code](https://github.com/kundajelab/SMFNet_paper_analysis_code).
 
 ## Workflows
 
@@ -112,9 +117,8 @@ A few things to know about the arguments:
 
 - `checkpoint=` accepts a Hub ID, a `save_pretrained` directory or a `.ckpt` file.
 - Relative paths are resolved against the directory you run the command from.
-- Quote arguments whose values contain `=` or brackets, such as Lightning checkpoint names
-  (`"checkpoint='runs/epoch=377-step=171990.ckpt'"`) or lists
-  (`"data.cfg.h5_path=[active.h5,background.h5]"`).
+- Quote arguments whose values contain brackets, such as lists
+  (`"data.cfg.h5_path=[active.h5,background.h5]"`), or `=`.
 
 ### Generate reads
 
@@ -183,11 +187,21 @@ see [`examples/prism.ipynb`](examples/prism.ipynb).
 [Weights & Biases](https://wandb.ai) (set `WANDB_MODE=offline` to log locally only) and to a
 CSV file in the run directory.
 
+To train on the ONT mESC data, download it (3.6 GB) from the Hub and the mm10 genome from
+UCSC:
+
 ```bash
+pixi run hf download kundajelab/smfnet-data-ont-mesc --repo-type dataset --local-dir data/ont_mesc
+curl -L https://hgdownload.soe.ucsc.edu/goldenPath/mm10/bigZips/mm10.fa.gz | gunzip > data/mm10.fa
+
 pixi run python scripts/train.py assay_type=cg_gc_accessibility \
-    data.cfg.fasta_path=mm10.fa \
-    "data.cfg.h5_path=[ONT_mESC_acRegions.h5,ONT_mESC_bgRegions.h5]"
+    data.cfg.fasta_path=data/mm10.fa \
+    "data.cfg.h5_path=[data/ont_mesc/ONT_mESC_acRegions.h5,data/ont_mesc/ONT_mESC_bgRegions.h5]"
 ```
+
+The run directory then holds the checkpoint with the lowest validation loss
+(`epoch<N>-step<M>.ckpt`) and the last one (`last.ckpt`), either of which `checkpoint=`
+accepts in the other scripts.
 
 Chromosomes are split into training, validation (chr8, chr16) and test (chr1, chr3, chr6)
 sets by default; override `data.cfg.train_chrm`, `val_chrm` and `test_chrm` for other
@@ -196,11 +210,11 @@ genomes. Each released model's training configuration is on Zenodo.
 ## Using your own data
 
 Training reads are stored in H5 files with, for each region named `chr:start-end`, a read
-matrix `smf_mat/<region>` (`[reads, sites]` int8: 1 occupied, 0 accessible, -1 no call) and
+matrix `smf_mat/<region>` (`[reads, sites]` integers: 1 occupied, 0 accessible, -1 no call) and
 the sites' offsets within the region, `smf_pos/<region>`. Regions are 2114 bp
 (`data.cfg.h5_region_length`) by default, and training crops 2048 bp windows from them.
-[`data_preparation/`](data_preparation/README.md) builds these files from Fiber-seq BAMs and
-documents the format in full.
+[`data_preparation/`](data_preparation/README.md) builds these files from SMF-ONT, short-read SMF
+and Fiber-seq data and documents the format in full.
 
 ## Repository layout
 

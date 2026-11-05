@@ -50,6 +50,8 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 100
+# An unmodified copy of the nf-smfont release, kept as published.
+extend-exclude = ["data_preparation/SMF-ONT/vendor"]
 
 [tool.ruff.lint]
 # Frozen settings dataclasses are used as default arguments throughout.
