@@ -7,7 +7,7 @@ molecule was occupied (protected from the methylase) and 0 where it was accessib
 Sampling many reads gives the range of molecular states a sequence encodes, not only its
 average accessibility.
 
-Models can be trained on three assays (`assay_type`):
+Models can be trained on three assays (`assay_type`; see [Assay types](#assay-types)):
 
 | Assay type | Assay | Call sites |
 | --- | --- | --- |
@@ -306,7 +306,75 @@ matrix `smf_mat/<region>` (`[reads, sites]` integers: 1 occupied, 0 accessible, 
 the sites' offsets within the region, `smf_pos/<region>`. Regions are 2114 bp
 (`data.cfg.h5_region_length`) by default, and training crops 2048 bp windows from them.
 [`data_preparation/`](data_preparation/README.md) builds these files from SMF-ONT, short-read SMF
-and Fiber-seq data and documents the format in full.
+and Fiber-seq data and documents the format in full. Choose the `assay_type` that matches
+your assay's call sites (see [Assay types](#assay-types)).
+
+## Assay types
+
+`assay_type` says which positions an assay can call. It decides:
+
+- **Call sites.** When data is loaded, `smf_mat` columns at other positions are dropped, and
+  regions left without calls are skipped. The model learns and generates reads only at call
+  sites, and marks every other position 2.
+- **Reverse-complement augmentation.** Whether training flips regions to the other strand at
+  random by default (`data.cfg.rc_augmentation` overrides it), and how calls move when it
+  does: a CpG or GpC call moves to the other cytosine of its dinucleotide, while an m6A call
+  stays on its base pair.
+- **Flank baseline sites** in `metrics.py`, which fits one baseline per site type.
+
+| `assay_type` | Call sites | RC augmentation by default | Data preparation |
+| --- | --- | --- | --- |
+| `cg_gc_accessibility` | CpG and GpC cytosines | on | [SMF-ONT](data_preparation/SMF-ONT/README.md); [short-read SMF](data_preparation/Short-read%20SMF/README.md), combined mode |
+| `gch_accessibility` | GpC in a DGCH context (no CpG overlap) | off, as the bait-capture data it was made for is strand-biased | [short-read SMF](data_preparation/Short-read%20SMF/README.md), GC-only mode |
+| `fiberseq_m6a` | every A and T | on | [Fiber-seq](data_preparation/fiberseq/README.md) |
+
+`train.py` takes `assay_type=` for both the data and the model, and saved models keep it,
+so `sample.py`, `marginalize.py` and `ism.py` use the model's assay. When `sample.py` or
+`ism.py` reads regions from a data split, set `data.cfg.assay_type` (and the splits) to match
+the model as well; they stop with an error if the assays differ.
+
+### Train on Fiber-seq data
+
+[`data_preparation/fiberseq/`](data_preparation/fiberseq/README.md) builds `active.h5` and
+`background.h5` from Fiber-seq BAMs. The default chromosome splits are for mouse, so set
+splits for human data; the released GM12878 model validated on chr8 and chr20, tested on
+chr1, chr3 and chr6, and trained on the other chromosomes:
+
+```bash
+SPLITS=("data.cfg.train_chrm=[chr2,chr4,chr5,chr7,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr21,chr22,chrX,chrY]"
+    "data.cfg.val_chrm=[chr8,chr20]")
+
+pixi run python scripts/train.py assay_type=fiberseq_m6a "${SPLITS[@]}" \
+    data.cfg.fasta_path=data/hg38.fa \
+    "data.cfg.h5_path=[GM12878/h5/active.h5,GM12878/h5/background.h5]"
+
+pixi run python scripts/sample.py checkpoint=kundajelab/smfnet-fiberseq-gm12878 \
+    data.cfg.assay_type=fiberseq_m6a "${SPLITS[@]}" data.cfg.fasta_path=data/hg38.fa \
+    "data.cfg.h5_path=[GM12878/h5/active.h5,GM12878/h5/background.h5]" regions.split=val
+```
+
+About 58% of positions are A or T, against a few percent for the cytosine assays, so
+Fiber-seq regions hold many more calls.
+
+### Add an assay
+
+If your assay calls the same sites as one of the above, use that `assay_type`, and set
+`data.cfg.rc_augmentation` if its strand handling differs (RC augmentation is only valid
+when the data merges both strands evenly).
+
+Otherwise, add it in [`src/smf_net/data.py`](src/smf_net/data.py):
+
+1. Add its name to `AssayType` and an `AssaySpec` to `ASSAYS`, giving its site rule
+   (`target_rule`) and RC augmentation default. If an existing rule (`cg_gc`, `gch` or
+   `at`) describes its sites, that is all.
+2. For a new site rule, add it to `AssaySpec.target_rule` and implement it in
+   `get_valid_mask` (which positions are call sites) and `reverse_complement_dna_and_smf`
+   (where a call goes on the other strand).
+3. For `metrics.py`, add the rule's site types to `SITE_TYPES` and `site_types` in
+   [`src/smf_net/evaluation/flank_baselines.py`](src/smf_net/evaluation/flank_baselines.py).
+4. Add tests next to the existing ones in `tests/test_data.py`.
+
+Don't rename or change the existing assays: the released models depend on them.
 
 ## Repository layout
 
