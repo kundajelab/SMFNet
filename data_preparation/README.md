@@ -9,3 +9,4 @@ subfolder.
 | [`SMF-ONT/`](SMF-ONT/README.md) | SMF-ONT CG+GC (Oxford Nanopore), mouse |
 | [`Short-read SMF/`](Short-read%20SMF/README.md) | Short-read SMF CG+GC or GC-only (Illumina), mouse |
 | [`fiberseq/`](fiberseq/README.md) | Fiber-seq m6A (PacBio HiFi), human |
+| [`demo/`](demo/make_demo_data.py) | A small demo subset of any of the above, with its own reference |
