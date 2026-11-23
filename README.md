@@ -316,10 +316,11 @@ your assay's call sites (see [Assay types](#assay-types)).
 - **Call sites.** When data is loaded, `smf_mat` columns at other positions are dropped, and
   regions left without calls are skipped. The model learns and generates reads only at call
   sites, and marks every other position 2.
-- **Reverse-complement augmentation.** Whether training flips regions to the other strand at
-  random by default (`data.cfg.rc_augmentation` overrides it), and how calls move when it
-  does: a CpG or GpC call moves to the other cytosine of its dinucleotide, while an m6A call
-  stays on its base pair.
+- **Reverse-complement augmentation.** Whether training flips each training region to the
+  other strand with probability ½ by default (`data.cfg.rc_augmentation=true|false`
+  overrides it; validation and sampling never flip), and how calls move when it does: a CpG
+  or GpC call moves to the other cytosine of its dinucleotide, while an m6A call stays on
+  its base pair.
 - **Flank baseline sites** in `metrics.py`, which fits one baseline per site type.
 
 | `assay_type` | Call sites | RC augmentation by default | Data preparation |
